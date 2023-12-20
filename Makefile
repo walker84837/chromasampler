@@ -1,10 +1,10 @@
 CXX = g++
-CXXFLAGS = -O3 -std=c++17
+CXXFLAGS = -Ofast -std=gnu++17 -march=native -mtune=native
 LIBS = -lopencv_core -lopencv_imgcodecs
-INCLUDE = -I/usr/include/opencv4
-TARGET = ChromaSampler.app
+INCLUDE = $(shell pkg-config --cflags --libs opencv4)
+TARGET = chromasampler
 
-SRC = main.cpp
+SRC = src/main.cpp
 
 $(TARGET): $(SRC)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC) $(INCLUDE) $(LIBS)
