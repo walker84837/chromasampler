@@ -5,7 +5,6 @@
 #include <opencv4/opencv2/opencv.hpp>
 #include <string>
 #include "../include/cxxopts.hpp"
-#include "wrappers.hpp"
 
 namespace fs = std::filesystem;
 
