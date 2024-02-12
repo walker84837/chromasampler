@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## \[Unreleased\]
 
+## \[0.2.0\] - 2024-02-13
+
+### Added
+
+  - Add a new logging framework with basic string formatting.
+
+### Changed
+
+  - Use a Bash script to download headers instead of providing them.
+  - Replace `getopt` with `parg` for command-line argument parsing.
+
 ## \[0.1.0\] - 2024-01-04
 
 ### Added

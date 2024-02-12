@@ -26,6 +26,10 @@ To use `chromasampler-c`, follow these steps:
     git clone https://github.com/walker84837/chromasampler-c.git
     ```
 2.  Navigate to the project directory: `cd chromasampler-c`
+3.  Go to `src/include` and run the `download_deps.sh` script:
+    ```console
+    ./download_deps.sh
+    ```
 3.  Compile the program:
     ``` console
     make

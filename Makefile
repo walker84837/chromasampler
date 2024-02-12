@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS = -Ofast -std=gnu11 -static -Wextra -Wall
-LDFLAGS = -lm
+LDFLAGS = -lm -L./src/lib -lparg -llogging
 SRC_DIR = src
 BUILD_DIR = build
 
-# List all source files (assuming only main.c for simplicity)
+# List all source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
 # Generate a list of object files in the build directory
