@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## \[Unreleased\]
 
+### Added
+
+  - Update the Makefile to automatically run `download_deps.sh` and build 
+    the static libraries right before compiling.
+
 ## \[0.2.0\] - 2024-02-13
 
 ### Added
