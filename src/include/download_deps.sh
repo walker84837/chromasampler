@@ -8,7 +8,6 @@ deps=(
 
 # Usage: basename "path" ["suffix"]
 basename() {
-
     # Code taken from:
     # https://github.com/dylanaraps/pure-sh-bible
     # This function's code is licensed under MIT License.
@@ -55,5 +54,5 @@ for dep in "${deps[@]}"; do
 	download_dependency "$dep"
 done
 
-echo "Script completed successfully."
+echo "Dependencies completed successfully."
 exit 0
