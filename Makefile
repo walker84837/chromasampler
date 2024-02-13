@@ -19,10 +19,10 @@ all: deps $(TARGET)
 
 # Run the script in src/include
 deps:
+	mkdir -p $(SRC_DIR)/lib
 	cd $(SRC_DIR)/include && ./download_deps.sh
 	cd $(SRC_DIR)/logging && make -f Makefile
 	# Clone the parg library and build it
-	mkdir -p $(SRC_DIR)/lib
 	cd $(SRC_DIR)/lib && git clone https://github.com/jibsen/parg.git
 	cd $(SRC_DIR)/lib/parg && cmake . && cmake --build . && mv libparg.a .. && cd .. && rm -rf parg
 
