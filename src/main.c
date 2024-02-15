@@ -64,7 +64,8 @@ void rgb_to_hex(char **hex_color, uint8_t red, uint8_t green, uint8_t blue)
 	}
 }
 
-bool is_null_or_empty(const char *str) {
+bool is_null_or_empty(const char *str)
+{
 	return str == NULL || *str == '\0';
 }
 
