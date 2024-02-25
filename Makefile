@@ -29,6 +29,7 @@ deps:
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	strip --remove-section=.note.gnu.build-id --strip-all --strip-unneeded -g $@
 
 # Rule to build object files from source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
