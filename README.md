@@ -3,9 +3,9 @@
 ![Licensed under GNU
 GPLv3](https://img.shields.io/badge/license-GNU%20GPLv3-blue.svg)
 
-`chromasampler-c` efficiently calculates the average colour of an image.
+`chromasampler-c` calculates the average colour of an image.
 
-It can extract dominant colour information from images in various formats.
+It can extract the average colour from images in various formats.
 This makes it useful for tasks such as image analysis, colour-based sorting,
 or generating colour palettes.
 
@@ -50,9 +50,8 @@ input image file using the `-f` option. Here's an example:
 
 ## Roadmap
 
-  - Support for WebP images.
+  - Wider image support (especially WebP images).
   - Configuration with [INI](https://github.com/clibs/inih).
-  - Wider image support.
 
 ## Contributing
 
@@ -81,4 +80,4 @@ repository:
   - [stb](https://github.com/nothings/stb): Unlicense OR MIT
   - [pure-sh-bible](https://github.com/dylanaraps/pure-sh-bible): MIT
 
-**NOTE**: Development may slow down or stop in the future.
+**NOTE**: Development *may* slow down or stop in the future.
