@@ -35,32 +35,40 @@ typedef struct {
 
 const char *get_file_extension(const char *file_name)
 {
-	// Find the last occurrence of '.'
+	/*
+	 * Find the last occurrence of '.'
+	 */
 	const char *dot = strrchr(file_name, '.');
 
 	if (dot == NULL || dot == file_name) {
-		// No dot found or dot is the first character (no extension)
+		/*
+		 * No dot found or dot is the first character (no extension).
+		 */
 		return NULL;
 	} else {
-		// Return the extension (substring after the last dot)
+		/*
+		 * Return the extension (substring after the last dot).
+		 */
 		return dot + 1;
 	}
 }
 
 void rgb_to_hex(char **hex_color, uint8_t red, uint8_t green, uint8_t blue)
 {
-	// Allocate memory for the hex color string (including the null terminator)
+	/*
+	 * Allocate memory for the hex color string (including the null terminator).
+	 */
 	*hex_color = (char *)malloc(8);
 
 	if (!(*hex_color)) {
-		perror("Memory allocation error");
+		fatal_error("Allocating memory for hex color failed!");
 		exit(EXIT_FAILURE);
 	}
 
 	if (snprintf(*hex_color, 8, "#%02x%02x%02x", red, green, blue) != 7) {
-		fprintf(stderr, "Error converting RGB to hex\n");
-		exit(EXIT_FAILURE);
-
+		error("Converting RGB-formatted color to hexadecimal format failed");
+		warning("Something wrong happened during formatting. Setting the color to #000000");
+		*hex_color = "#000000";
 	}
 }
 
@@ -82,8 +90,10 @@ static RGBColor calculate_average_rgb(const char *filename)
 
 	int width, height, channels;
 
-	// Load the image with `desired_channels` set to 0 to get the actual channels
-	// in the image
+	/*
+	 * Load the image with `desired_channels` set to 0 to get the actual
+	 * channels in the image.
+	 */
 	uint8_t *image = stbi_load(filename, &width, &height, &channels, 0);
 
 	if (!image) {
@@ -98,14 +108,24 @@ static RGBColor calculate_average_rgb(const char *filename)
 
 	uint64_t total_pixels = width * height;
 
-	// If the alpha channel is present, ignore it.
+	/*
+	 * If the alpha channel is present, ignore it, because taking it into
+	 * consideration leads to counting the colors incorrectly, leading to
+	 * an inaccurate color average.
+	 */
 	if (channels == 4) {
 		warning("An alpha channel is present! The average color MAY not be accurate!");
 		channels = 3;
 	}
 
+	/*
+	 * We are using uint64_t just in case the image is of big resolution, 
+	 * and the total pixels have more than 2^31 - 1.
+	 */
 	for (uint64_t i = 0; i < total_pixels; ++i) {
-		// Calculate the correct index based on the actual number of channels
+		/*
+		 * Calculate the correct index based on the actual number of channels 
+		 */
 		uint64_t index = i * channels;
 
 		average_rgb.red += image[index];
@@ -147,20 +167,24 @@ int main(int argc, char **argv)
 				puts("  -h  open this help");
 				exit(EXIT_SUCCESS);
 			default:
-				fprintf(stderr, "Usage: %s [-f filename]\n", argv[0]);
+				fprintf(stderr, "unknown argument: run again with -h for help.\n");
 				exit(EXIT_FAILURE);
 		}
 	}
 
 	if (filename == NULL) {
-		fatal_error("No image was provided. Exiting...");
+		fatal_error("No image was provided");
 		exit(EXIT_FAILURE);
 	}
 
 	RGBColor average_rgb = calculate_average_rgb(filename);
 	char *hex_color = NULL;
 	rgb_to_hex(&hex_color, average_rgb.red, average_rgb.green, average_rgb.blue);
-	printf("Average color (RGB): rgb(%lu, %lu, %lu)\n", average_rgb.red, average_rgb.green, average_rgb.blue);
+	printf("Average color (RGB): rgb(%lu, %lu, %lu)\n",
+		average_rgb.red,
+		average_rgb.green,
+		average_rgb.blue
+	);
 	printf("Average colors (Hex): %s\n", hex_color);
 
 	free(hex_color);
