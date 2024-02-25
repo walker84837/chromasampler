@@ -38,4 +38,4 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET) $(SRC_DIR)/lib/libparg.a $(SRC_DIR)/lib/liblogging.a $(SRC_DIR)/include/*.c $(SRC_DIR)/include/*.h
+	rm -rf $(BUILD_DIR) $(TARGET) $(SRC_DIR)/lib $(SRC_DIR)/include/*.c $(SRC_DIR)/include/*.h
