@@ -33,8 +33,6 @@ typedef struct {
 	uint64_t blue;
 } rgb_color_t;
 
-bool verbose = false;
-
 char *basename(const char *path)
 {
 	char *dir = (char *)path;
@@ -179,11 +177,15 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}
 	};
 
+	bool rgb = false;
 	int opt;
-	while ((opt = parg_getopt_long(&ps, argc, argv, "f:h", longopts, NULL)) != -1) {
+	while ((opt = parg_getopt_long(&ps, argc, argv, "rf:h", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'f':
 				filename = ps.optarg;
+				break;
+			case 'r':
+				rgb = true;
 				break;
 			case 'h':
 				printf("%s: find the average color in an image\n", argv[0]);
@@ -212,11 +214,14 @@ int main(int argc, char **argv)
 		average_rgb.blue
 	);
 
-	printf("rgb(%lu, %lu, %lu)\n",
-		average_rgb.red,
-		average_rgb.green,
-		average_rgb.blue
-	);
+	if (rgb) {
+		printf("rgb(%lu, %lu, %lu)\n",
+			average_rgb.red,
+			average_rgb.green,
+			average_rgb.blue
+		);
+	}
+
 	printf("%s\n", hex_color);
 
 	free(hex_color);
