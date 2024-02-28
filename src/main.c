@@ -130,8 +130,8 @@ static rgb_color_t calculate_average_rgb(const char *filename)
 	 * consideration leads to counting the colors incorrectly, leading to
 	 * an inaccurate color average.
 	 */
-	if (channels == 4) {
-		warning("4 channels found in '%s', forcing 3 channels.", filename_base);
+	if (channels != 3) {
+		warning("%d channels found in '%s', forcing 3 channels.", channels, filename_base);
 		channels = 3;
 	}
 
