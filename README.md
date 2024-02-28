@@ -45,8 +45,7 @@ input image file using the `-f` option. Here's an example:
 ```
 
   - `-f`: Specify the filename of the input image.
-  - `-r`: Output the average color in RGB format, along with the one in
-    hexadecimal.
+  - `-r`: Output the average color in RGB format.
   - `-h`: Display the help message with usage information.
 
 The supported image formats are:
