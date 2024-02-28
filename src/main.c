@@ -31,81 +31,118 @@ typedef struct {
 	uint64_t red;
 	uint64_t green;
 	uint64_t blue;
-} RGBColor;
+} rgb_color_t;
+
+char *basename(const char *path)
+{
+	char *dir = (char *)path;
+
+	/*
+	 * Strip all trailing forward-slashes '/' from the end of the string.
+	 */
+	size_t len = strlen(dir);
+	while (len > 0 && dir[len - 1] == '/') {
+		dir[--len] = '\0';
+	}
+
+	char *last_slash = strrchr(dir, '/');
+
+	/*
+	 * If a slash is found, return everything after it, otherwise, return
+	 * the original string.
+	 */
+	if (last_slash != NULL) {
+		dir = last_slash + 1;
+	}
+
+	return dir;
+}
 
 const char *get_file_extension(const char *file_name)
 {
-	// Find the last occurrence of '.'
+	/*
+	 * Find the last occurrence of '.'
+	 */
 	const char *dot = strrchr(file_name, '.');
 
 	if (dot == NULL || dot == file_name) {
-		// No dot found or dot is the first character (no extension)
+		/*
+		 * No dot found or dot is the first character (no extension).
+		 */
 		return NULL;
 	} else {
-		// Return the extension (substring after the last dot)
+		/*
+		 * Return the extension (substring after the last dot).
+		 */
 		return dot + 1;
 	}
 }
 
 void rgb_to_hex(char **hex_color, uint8_t red, uint8_t green, uint8_t blue)
 {
-	// Allocate memory for the hex color string (including the null terminator)
+	/*
+	 * Allocate memory for the hex color string (including the null terminator).
+	 */
 	*hex_color = (char *)malloc(8);
 
 	if (!(*hex_color)) {
-		perror("Memory allocation error");
+		fatal_error("Allocating memory for hex color failed.");
 		exit(EXIT_FAILURE);
 	}
 
 	if (snprintf(*hex_color, 8, "#%02x%02x%02x", red, green, blue) != 7) {
-		fprintf(stderr, "Error converting RGB to hex\n");
-		exit(EXIT_FAILURE);
-
+		error("Converting RGB-formatted color to hexadecimal format failed.");
+		warning("Something wrong happened during color formatting! Setting it to `#000000`.");
+		*hex_color = "#000000";
 	}
 }
 
-bool is_null_or_empty(const char *str)
-{
-	return str == NULL || *str == '\0';
-}
-
-static RGBColor calculate_average_rgb(const char *filename)
+static rgb_color_t calculate_average_rgb(const char *filename)
 {
 	const char *extension = get_file_extension(filename);
 
-	if (is_null_or_empty(extension)) {
-		warning("The image doesn't have a file extension or is `NULL`. It might be invalid.");
-	} else if (strcmp(extension, "webp") == 0) {
-		error("The image is assumed to be a WebP image. As of now, WebP images are not supported.");
-		exit(EXIT_FAILURE);
+	if (extension == NULL || *extension == '\0') {
+		warning("The image doesn't have a file extension. Expect errors to happen.");
 	}
 
 	int width, height, channels;
 
-	// Load the image with `desired_channels` set to 0 to get the actual channels
-	// in the image
+	/*
+	 * Load the image with `desired_channels` set to 0 to get the actual
+	 * channels in the image.
+	 */
 	uint8_t *image = stbi_load(filename, &width, &height, &channels, 0);
+	char *filename_base = basename(filename);
 
 	if (!image) {
-		error("Failed to load image '%s'.", filename);
-		perror("Error loading image");
+		fatal_error("Failed to load image '%s'. The error may be caused by an invalid image or invalid format.", filename_base);
 		exit(EXIT_FAILURE);
 	}
 
-	info("Loaded image '%s' (%dx%d).", filename, width, height);
+	info("Loaded image '%s' (%dx%d).", filename_base, width, height);
 
-	RGBColor average_rgb = {0, 0, 0};
+	rgb_color_t average_rgb = {0, 0, 0};
 
 	uint64_t total_pixels = width * height;
 
-	// If the alpha channel is present, ignore it.
-	if (channels == 4) {
-		warning("An alpha channel is present! The average color MAY not be accurate!");
+	/*
+	 * If the alpha channel is present, ignore it, because taking it into
+	 * consideration leads to counting the colors incorrectly, leading to
+	 * an inaccurate color average.
+	 */
+	if (channels != 3) {
+		warning("%d channels found in '%s', forcing 3 channels.", channels, filename_base);
 		channels = 3;
 	}
 
+	/*
+	 * We are using uint64_t just in case the image is of big resolution, 
+	 * and the total pixels have more than 2^31 - 1.
+	 */
 	for (uint64_t i = 0; i < total_pixels; ++i) {
-		// Calculate the correct index based on the actual number of channels
+		/*
+		 * Calculate the correct index based on the actual number of channels 
+		 */
 		uint64_t index = i * channels;
 
 		average_rgb.red += image[index];
@@ -130,40 +167,59 @@ int main(int argc, char **argv)
 
 	const struct parg_option longopts[] = {
 		{"file", PARG_REQARG, NULL, 'f'},
+		{"verbose", PARG_NOARG, NULL, 'v'},
 		{"help", PARG_NOARG, NULL, 'h'},
 		{0, 0, 0, 0}
 	};
 
+	bool rgb = false;
 	int opt;
-	while ((opt = parg_getopt_long(&ps, argc, argv, "f:h", longopts, NULL)) != -1) {
+	while ((opt = parg_getopt_long(&ps, argc, argv, "rf:h", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'f':
 				filename = ps.optarg;
+				break;
+			case 'r':
+				rgb = true;
 				break;
 			case 'h':
 				printf("%s: find the average color in an image\n", argv[0]);
 				printf("Usage: %s [-f filename]\n", argv[0]);
 				puts("  -f  file name of the image");
+				puts("  -r  output the color in rgb format");
 				puts("  -h  open this help");
 				exit(EXIT_SUCCESS);
 			default:
-				fprintf(stderr, "Usage: %s [-f filename]\n", argv[0]);
+				fprintf(stderr, "unknown argument: run again with -h for help.\n");
 				exit(EXIT_FAILURE);
 		}
 	}
 
 	if (filename == NULL) {
-		fatal_error("No image was provided. Exiting...");
+		fatal_error("No image was provided.");
 		exit(EXIT_FAILURE);
 	}
 
-	RGBColor average_rgb = calculate_average_rgb(filename);
-	char *hex_color = NULL;
-	rgb_to_hex(&hex_color, average_rgb.red, average_rgb.green, average_rgb.blue);
-	printf("Average color (RGB): rgb(%lu, %lu, %lu)\n", average_rgb.red, average_rgb.green, average_rgb.blue);
-	printf("Average colors (Hex): %s\n", hex_color);
+	rgb_color_t average_rgb = calculate_average_rgb(filename);
 
-	free(hex_color);
+	if (!rgb) {
+		char *hex_color = NULL;
+		rgb_to_hex(
+			&hex_color,
+			average_rgb.red,
+			average_rgb.green,
+			average_rgb.blue
+		);
+
+		printf("%s\n", hex_color);
+		free(hex_color);
+	} else {
+		printf("rgb(%lu, %lu, %lu)\n",
+			average_rgb.red,
+			average_rgb.green,
+			average_rgb.blue
+		);
+	}
 
 	return 0;
 }

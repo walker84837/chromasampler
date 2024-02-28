@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Ofast -std=gnu11 -static -Wextra -Wall
+CFLAGS = -Ofast -std=gnu11 -static -Wextra -Wall -s -finline-small-functions
 LDFLAGS = -lm -L./src/lib -lparg -llogging
 SRC_DIR = src
 BUILD_DIR = build
@@ -29,13 +29,14 @@ deps:
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	strip --remove-section=.note.gnu.build-id --strip-all --strip-unneeded -g $@
 
 # Rule to build object files from source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -flto -c -o $@ $<
 
 $(BUILD_DIR):
 	mkdir -p $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET) $(SRC_DIR)/lib/libparg.a $(SRC_DIR)/lib/liblogging.a $(SRC_DIR)/include/*.c $(SRC_DIR)/include/*.h
+	rm -rf $(BUILD_DIR) $(TARGET) $(SRC_DIR)/lib $(SRC_DIR)/include/*.c $(SRC_DIR)/include/*.h
