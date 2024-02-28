@@ -4,8 +4,8 @@ deps=(
 	"https://raw.githubusercontent.com/nothings/stb/master/stb_image.h"
 	"https://raw.githubusercontent.com/jibsen/parg/master/parg.h"
 	"https://raw.githubusercontent.com/jibsen/parg/master/parg.c"
-	"https://raw.githubusercontent.com/clibs/inih/master/ini.c"
-	"https://raw.githubusercontent.com/clibs/inih/master/ini.h"
+	# "https://raw.githubusercontent.com/clibs/inih/master/ini.c"
+	# "https://raw.githubusercontent.com/clibs/inih/master/ini.h"
 )
 
 # Usage: basename "path" ["suffix"]

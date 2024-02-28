@@ -92,22 +92,17 @@ void rgb_to_hex(char **hex_color, uint8_t red, uint8_t green, uint8_t blue)
 
 	if (snprintf(*hex_color, 8, "#%02x%02x%02x", red, green, blue) != 7) {
 		error("Converting RGB-formatted color to hexadecimal format failed.");
-		warning("Something wrong happened during formatting. Setting the color to #000000");
+		warning("Something wrong happened during color formatting! Setting it to `#000000`.");
 		*hex_color = "#000000";
 	}
-}
-
-bool is_null_or_empty(const char *str)
-{
-	return str == NULL || *str == '\0';
 }
 
 static rgb_color_t calculate_average_rgb(const char *filename)
 {
 	const char *extension = get_file_extension(filename);
 
-	if (is_null_or_empty(extension)) {
-		warning("The image doesn't have a file extension or is `NULL`. Expect errors to happen.");
+	if (extension == NULL || *extension == '\0') {
+		warning("The image doesn't have a file extension. Expect errors to happen.");
 	}
 
 	int width, height, channels;
@@ -120,7 +115,7 @@ static rgb_color_t calculate_average_rgb(const char *filename)
 	char *filename_base = basename(filename);
 
 	if (!image) {
-		fatal_error("Failed to load image '%s'", filename_base);
+		fatal_error("Failed to load image '%s'. The error may be caused by an invalid image or invalid format.", filename_base);
 		exit(EXIT_FAILURE);
 	}
 
@@ -191,6 +186,7 @@ int main(int argc, char **argv)
 				printf("%s: find the average color in an image\n", argv[0]);
 				printf("Usage: %s [-f filename]\n", argv[0]);
 				puts("  -f  file name of the image");
+				puts("  -r  output the color in rgb format");
 				puts("  -h  open this help");
 				exit(EXIT_SUCCESS);
 			default:
@@ -200,21 +196,24 @@ int main(int argc, char **argv)
 	}
 
 	if (filename == NULL) {
-		fatal_error("No image was provided");
+		fatal_error("No image was provided.");
 		exit(EXIT_FAILURE);
 	}
 
 	rgb_color_t average_rgb = calculate_average_rgb(filename);
-	char *hex_color = NULL;
 
-	rgb_to_hex(
-		&hex_color,
-		average_rgb.red,
-		average_rgb.green,
-		average_rgb.blue
-	);
+	if (!rgb) {
+		char *hex_color = NULL;
+		rgb_to_hex(
+			&hex_color,
+			average_rgb.red,
+			average_rgb.green,
+			average_rgb.blue
+		);
 
-	if (rgb) {
+		printf("%s\n", hex_color);
+		free(hex_color);
+	} else {
 		printf("rgb(%lu, %lu, %lu)\n",
 			average_rgb.red,
 			average_rgb.green,
@@ -222,8 +221,5 @@ int main(int argc, char **argv)
 		);
 	}
 
-	printf("%s\n", hex_color);
-
-	free(hex_color);
 	return 0;
 }
