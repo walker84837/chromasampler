@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## \[Unreleased\]
 
+## \[0.3.0\] - 2024-02-28
+
+### Added
+
+  - Add image file name extracting from absolute path
+  - Add optional rgb output
+
+### Changed
+
+  - Change comments to linux kernel-style comments
+  - Improve logging in rgb to hex converting
+  - Improve makefiles
+
+### Fixed
+
+  - After failure in converting rgb to hex, the color is set to #000000
+
 ## \[0.2.0\] - 2024-02-13
 
 ### Added
