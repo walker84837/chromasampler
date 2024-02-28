@@ -47,6 +47,8 @@ input image file using the `-f` option. Here's an example:
   - `-f`: Specify the filename of the input image.
   - `-r`: Output the average color in RGB format.
   - `-h`: Display the help message with usage information.
+  - The `.img` in image.img refers to one of these formats, which are the 
+    only ones supported as of now.
 
 The supported image formats are:
 
@@ -63,7 +65,6 @@ The supported image formats are:
 
 ## Roadmap
 
-  - Wider image support (especially WebP images).
   - Configuration with [INI](https://github.com/clibs/inih).
 
 ## Contributing
