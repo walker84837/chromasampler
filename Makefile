@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Ofast -std=gnu11 -static -Wextra -Wall
+CFLAGS = -Ofast -std=gnu11 -static -Wextra -Wall -s -finline-small-functions
 LDFLAGS = -lm -L./src/lib -lparg -llogging
 SRC_DIR = src
 BUILD_DIR = build
@@ -33,7 +33,7 @@ $(TARGET): $(OBJS)
 
 # Rule to build object files from source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -flto -c -o $@ $<
 
 $(BUILD_DIR):
 	mkdir -p $@
