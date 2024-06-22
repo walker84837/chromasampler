@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <time.h>
 
 typedef struct {
 	uint64_t red;
@@ -86,13 +87,13 @@ void rgb_to_hex(char **hex_color, uint8_t red, uint8_t green, uint8_t blue)
 	*hex_color = (char *)malloc(8);
 
 	if (!(*hex_color)) {
-		fatal_error("Allocating memory for hex color failed.");
+		fatal_error("Allocating memory for hex color failed");
 		exit(EXIT_FAILURE);
 	}
 
 	if (snprintf(*hex_color, 8, "#%02x%02x%02x", red, green, blue) != 7) {
-		error("Converting RGB-formatted color to hexadecimal format failed.");
-		warning("Something wrong happened during color formatting! Setting it to `#000000`.");
+		error("Converting RGB-formatted color to hexadecimal format failed");
+		warning("Something wrong happened during color formatting! Setting it to `#000000`");
 		*hex_color = "#000000";
 	}
 }
@@ -102,7 +103,7 @@ static rgb_color_t calculate_average_rgb(const char *filename)
 	const char *extension = get_file_extension(filename);
 
 	if (extension == NULL || *extension == '\0') {
-		warning("The image doesn't have a file extension. Expect errors to happen.");
+		warning("Image '%s' doesn't have a file extension", filename);
 	}
 
 	int width, height, channels;
@@ -115,11 +116,11 @@ static rgb_color_t calculate_average_rgb(const char *filename)
 	char *filename_base = basename(filename);
 
 	if (!image) {
-		fatal_error("Failed to load image '%s'. The error may be caused by an invalid image or invalid format.", filename_base);
-		exit(EXIT_FAILURE);
+		fatal_error("Failed to load image '%s'. The error may be caused by an invalid image or invalid format", filename_base);
+		goto fatal_err;
 	}
 
-	info("Loaded image '%s' (%dx%d).", filename_base, width, height);
+	info("Loaded image '%s' (%dx%d)", filename_base, width, height);
 
 	rgb_color_t average_rgb = {0, 0, 0};
 
@@ -130,9 +131,12 @@ static rgb_color_t calculate_average_rgb(const char *filename)
 	 * consideration leads to counting the colors incorrectly, leading to
 	 * an inaccurate color average.
 	 */
-	if (channels != 3) {
-		warning("%d channels found in '%s', forcing 3 channels.", channels, filename_base);
+	if (channels != 3 && channels > 3) {
+		warning("%d channels found in '%s', forcing 3 channels", channels, filename_base);
 		channels = 3;
+	} else if (channels < 3) {
+		fatal_error("getting average color with less than 3 channels isn't implemented yet");
+		goto fatal_err;
 	}
 
 	/*
@@ -155,13 +159,15 @@ static rgb_color_t calculate_average_rgb(const char *filename)
 	average_rgb.blue /= total_pixels;
 
 	stbi_image_free(image);
-
 	return average_rgb;
+
+fatal_err:
+	stbi_image_free(image);
+	exit(EXIT_FAILURE);
 }
- 
+
 int main(int argc, char **argv)
 {
-	const char *filename = NULL;
 	struct parg_state ps;
 	parg_init(&ps);
 
@@ -172,9 +178,11 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}
 	};
 
-	bool rgb = false;
+	bool rgb = false, measure_time = false;
+	const char *filename = NULL;
+
 	int opt;
-	while ((opt = parg_getopt_long(&ps, argc, argv, "rf:h", longopts, NULL)) != -1) {
+	while ((opt = parg_getopt_long(&ps, argc, argv, "rtf:h", longopts, NULL)) != -1) {
 		switch (opt) {
 			case 'f':
 				filename = ps.optarg;
@@ -182,25 +190,38 @@ int main(int argc, char **argv)
 			case 'r':
 				rgb = true;
 				break;
+			case 't':
+				measure_time = true;
+				break;
 			case 'h':
-				printf("%s: find the average color in an image\n", argv[0]);
-				printf("Usage: %s [-f filename]\n", argv[0]);
+				puts("chromasampler: find the average colour in an image");
+				puts("Usage: chromasampler [-f filename]");
+				puts("arguments:");
 				puts("  -f  file name of the image");
-				puts("  -r  output the color in rgb format");
+				puts("options:");
+				puts("  -t  measure the time it takes to get average colour");
+				puts("  -r  output the colour in rgb format");
 				puts("  -h  open this help");
 				exit(EXIT_SUCCESS);
 			default:
-				fprintf(stderr, "unknown argument: run again with -h for help.\n");
+				fputs("unknown argument: run again with -h for help\n", stderr);
 				exit(EXIT_FAILURE);
 		}
 	}
 
 	if (filename == NULL) {
-		fatal_error("No image was provided.");
+		fatal_error("No image was provided");
 		exit(EXIT_FAILURE);
 	}
 
+	clock_t start = clock();
 	rgb_color_t average_rgb = calculate_average_rgb(filename);
+	clock_t end = clock();
+
+	if (measure_time) {
+		double elapsed = ((double) (end - start)) / CLOCKS_PER_SEC * 1000;
+		info("Elapsed time: %f ms", elapsed);
+	}
 
 	if (!rgb) {
 		char *hex_color = NULL;
