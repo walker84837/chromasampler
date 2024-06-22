@@ -1,13 +1,13 @@
-# chromasampler-c
+# chromasampler
 
 ![Licensed under GNU
 GPLv3](https://img.shields.io/badge/license-GNU%20GPLv3-blue.svg)
 
-`chromasampler-c` calculates the average colour of an image.
+`chromasampler` calculates the average colour of an image.
 
-It can extract the average colour from images in various formats. This makes it
-useful for tasks such as image analysis, colour-based sorting, or generating
-colour palettes.
+It can extract the average colour from images in a variety of formats. This
+makes it useful for tasks such as image analysis, colour sorting or colour
+palette generation.
 
 ## Table of Contents
 
@@ -19,15 +19,15 @@ colour palettes.
 
 ## Installation
 
-To use `chromasampler-c`, follow these steps:
+To use `chromasampler`, follow these steps:
 
 1.  Clone the repository:
 
     ``` console
-    git clone https://github.com/walker84837/chromasampler-c.git
+    git clone https://github.com/walker84837/chromasampler.git
     ```
 
-2.  Navigate to the project directory: `cd chromasampler-c`
+2.  Navigate to the project directory: `cd chromasampler`
 
 3.  Compile the program:
 
@@ -41,7 +41,7 @@ The program is executed from the command line, allowing users to specify the
 input image file using the `-f` option. Here's an example:
 
 ``` console
-./chromasampler -f path/to/your/image.img
+./chromasampler -f path/to/your/image
 ```
 
   - `-f`: Specify the filename of the input image.
@@ -65,7 +65,7 @@ The supported image formats are:
 
 ## Roadmap
 
-  - Configuration with [INI](https://github.com/clibs/inih).
+  - [ ] Configuration with [INI](https://github.com/clibs/inih).
 
 ## Contributing
 
@@ -77,7 +77,7 @@ Contributions are welcome! If you'd like to contribute, please
   - If you're proposing new changes, open an issue.
 
 If you encounter any issues or have questions, feel free to open an issue on the
-[issue tracker](https://github.com/walker84837/chromasampler-c/issues).
+[issue tracker](https://github.com/walker84837/chromasampler/issues).
 
 ## License
 
@@ -86,9 +86,11 @@ This project is licensed under the [GNU GPLv3](LICENSE.md).
 Feel free to use, contribute, or provide feedback. If you are interested in
 becoming a maintainer, please get in touch.
 
-Where the project is dual-licensed under a public domain license or licenses
-like the MIT, I'm choosing the public domain licenses. I'll give attribution to
-every external dependency (or code) used in this repository:
+In the event that a library is dual licensed under a public domain or MIT-style
+licence, my preferred choice is the public domain licence. Furthermore, it is my
+responsibility to ensure that any external dependencies or snippets of code used
+in this repository are properly attributed in accordance with the
+relevant licence terms.
 
   - [parg](https://github.com/jibsen/parg): MIT-0
   - [stb](https://github.com/nothings/stb): Unlicense OR MIT
