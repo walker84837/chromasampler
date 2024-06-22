@@ -3,6 +3,9 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
+// Function to get local time as `YYYY-MM-DD HH:MM:SS`
+char *get_time_now();
+
 // Function to print log messages with INFO level
 void info(const char *format, ...);
 
