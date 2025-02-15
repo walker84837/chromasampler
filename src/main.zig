@@ -2,7 +2,7 @@ const std = @import("std");
 const argsParser = @import("args");
 const c = @cImport({
     @cDefine("STB_IMAGE_IMPLEMENTATION", "1");
-    @cInclude("stb/stb_image.h");
+    @cInclude("stb_image.h");
 });
 
 const RgbColor = struct {
@@ -47,9 +47,12 @@ pub fn main() !void {
         std.process.exit(1);
     };
 
-    const timer = if (options.options.time) try std.time.Timer.start() else null;
+    var timer: ?std.time.Timer = null;
+    if (options.options.time) {
+        timer = try std.time.Timer.start();
+    }
     const avg_color = try calculateAverageRgb(file);
-    const elapsed = if (timer) |t| t.read() else 0;
+    const elapsed = if (timer) |*t| t.read() else 0;
 
     if (options.options.time) {
         std.log.info("Processing time: {d}ms", .{elapsed / 1_000_000});
