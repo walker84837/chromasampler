@@ -1,6 +1,7 @@
 const std = @import("std");
 const argsParser = @import("args");
 const c = @cImport({
+    @cDefine("STBI_NO_SIMD", "1");
     @cDefine("STB_IMAGE_IMPLEMENTATION", "1");
     @cInclude("stb/stb_image.h");
 });
