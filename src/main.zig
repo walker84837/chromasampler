@@ -2,7 +2,7 @@ const std = @import("std");
 const argsParser = @import("args");
 const c = @cImport({
     @cDefine("STB_IMAGE_IMPLEMENTATION", "1");
-    @cInclude("stb_image.h");
+    @cInclude("stb/stb_image.h");
 });
 
 const RgbColor = struct {
