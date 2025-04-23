@@ -83,6 +83,9 @@ fn calculateAverageRgb(path: []const u8) !RgbColor {
     const image_path = try toTrailingStringAlloc(allocator, path);
     defer allocator.free(image_path);
 
+    stb.init(allocator);
+    defer stb.deinit();
+
     var image = try stb.Image.loadFromFile(image_path, 0);
     defer stb.Image.deinit(&image);
 
