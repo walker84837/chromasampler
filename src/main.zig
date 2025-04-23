@@ -68,29 +68,38 @@ pub fn main() !void {
     }
 }
 
-fn calculateAverageRgb(path: []const u8) !RgbColor {
-    const image = try stb.image.loadFromFile(path, 0);
-    defer image.deinit();
+fn toTrailingStringAlloc(allocator: std.mem.Allocator, s: []const u8) ![:0]const u8 {
+    var buf = try allocator.alloc(u8, s.len + 1);
+    std.mem.copyBackwards(u8, buf[0..s.len], s);
+    buf[s.len] = 0;
 
-    if (image == null) {
-        std.log.err("Failed to load image: {s}", .{path});
-        return error.ImageLoadFailed;
-    }
+    const const_buf: []const u8 = buf;
+    const trailing: [:0]const u8 = @ptrCast(const_buf);
+    return trailing;
+}
+
+fn calculateAverageRgb(path: []const u8) !RgbColor {
+    const allocator = std.heap.page_allocator;
+    const image_path = try toTrailingStringAlloc(allocator, path);
+    defer allocator.free(image_path);
+
+    var image = try stb.Image.loadFromFile(image_path, 0);
+    defer stb.Image.deinit(&image);
 
     const width = image.width;
     const height = image.height;
     const channels = image.num_components;
-    const total_pixels = @as(u64, @intCast(width)) * @as(u64, @intCast(height));
+    const total_pixels = @as(u64, width * height);
     var rgb = RgbColor{ .red = 0, .green = 0, .blue = 0 };
 
     const actual_channels = @as(usize, @intCast(channels));
-    const image_ptr: [*]const u8 = @ptrCast(image);
+    const image_data = image.data;
 
     for (0..total_pixels) |i| {
         const idx = i * actual_channels;
-        rgb.red += image_ptr[idx];
-        rgb.green += image_ptr[idx + 1];
-        rgb.blue += image_ptr[idx + 2];
+        rgb.red += image_data[idx];
+        rgb.green += image_data[idx + 1];
+        rgb.blue += image_data[idx + 2];
     }
 
     rgb.red /= total_pixels;
