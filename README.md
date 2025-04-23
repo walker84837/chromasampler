@@ -1,7 +1,7 @@
 # chromasampler
 
-![Licensed under GNU
-GPLv3](https://img.shields.io/badge/license-GNU%20GPLv3-blue.svg)
+[![Build with Zig](https://github.com/walker84837/chromasampler/actions/workflows/zig.yml/badge.svg)](https://github.com/walker84837/chromasampler/actions/workflows/zig.yml)
+![Licensed under GNU GPLv3](https://img.shields.io/badge/license-GNU%20GPLv3-blue.svg)
 
 `chromasampler` calculates the average colour of an image.
 
@@ -32,7 +32,7 @@ To use `chromasampler`, follow these steps:
 3.  Compile the program:
 
     ``` console
-    make -B
+    zig build
     ```
 
 ## Usage
@@ -65,14 +65,12 @@ The supported image formats are:
 
 ## Roadmap
 
-  - [ ] Configuration with [INI](https://github.com/clibs/inih).
+  - [ ] Configuration with [INI](https://github.com/ziglibs/ini).
 
 ## Contributing
 
 Contributions are welcome! If you'd like to contribute, please
 
-  - Follow the [Linux kernel coding
-    style](https://docs.kernel.org/process/coding-style.html).
   - Follow the [code of conduct](CODE_OF_CONDUCT.md).
   - If you're proposing new changes, open an issue.
 
@@ -82,18 +80,5 @@ If you encounter any issues or have questions, feel free to open an issue on the
 ## License
 
 This project is licensed under the [GNU GPLv3](LICENSE.md).
-
-Feel free to use, contribute, or provide feedback. If you are interested in
-becoming a maintainer, please get in touch.
-
-In the event that a library is dual licensed under a public domain or MIT-style
-licence, my preferred choice is the public domain licence. Furthermore, it is my
-responsibility to ensure that any external dependencies or snippets of code used
-in this repository are properly attributed in accordance with the
-relevant licence terms.
-
-  - [parg](https://github.com/jibsen/parg): MIT-0
-  - [stb](https://github.com/nothings/stb): Unlicense OR MIT
-  - [pure-sh-bible](https://github.com/dylanaraps/pure-sh-bible): MIT
 
 **NOTE**: Development *may* slow down or stop in the future.
