@@ -4,9 +4,6 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    // Add the STB submodule include path
-    const stb_include_path = b.path("lib/stb");
-
     // Static library
     const lib = b.addStaticLibrary(.{
         .name = "chromasampler",
@@ -27,15 +24,12 @@ pub fn build(b: *std.Build) void {
     // Add the args dependency
     exe.root_module.addImport("args", b.dependency("args", .{ .target = target, .optimize = optimize }).module("args"));
 
+    const zstbi = b.dependency("zstbi", .{});
+    exe.root_module.addImport("zstbi", zstbi.module("root"));
+
     // Link libc and math library
     exe.linkLibC();
     exe.linkSystemLibrary("m");
-
-    // Add STB include path to the executable
-    exe.addIncludePath(stb_include_path);
-
-    // Define STB_IMAGE_IMPLEMENTATION in Zig
-    exe.root_module.addCMacro("STB_IMAGE_IMPLEMENTATION", "1");
 
     // Install the executable
     b.installArtifact(exe);

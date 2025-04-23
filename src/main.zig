@@ -1,10 +1,6 @@
 const std = @import("std");
 const argsParser = @import("args");
-const c = @cImport({
-    @cDefine("STBI_NO_SIMD", "1");
-    @cDefine("STB_IMAGE_IMPLEMENTATION", "1");
-    @cInclude("stb/stb_image.h");
-});
+const stb = @import("zstbi");
 
 const RgbColor = struct {
     red: u64,
@@ -73,18 +69,17 @@ pub fn main() !void {
 }
 
 fn calculateAverageRgb(path: []const u8) !RgbColor {
-    var width: c_int = 0;
-    var height: c_int = 0;
-    var channels: c_int = 0;
-
-    const image = c.stbi_load(path.ptr, &width, &height, &channels, 0);
-    defer if (image != null) c.stbi_image_free(image);
+    const image = try stb.image.loadFromFile(path, 0);
+    defer image.deinit();
 
     if (image == null) {
         std.log.err("Failed to load image: {s}", .{path});
         return error.ImageLoadFailed;
     }
 
+    const width = image.width;
+    const height = image.height;
+    const channels = image.num_components;
     const total_pixels = @as(u64, @intCast(width)) * @as(u64, @intCast(height));
     var rgb = RgbColor{ .red = 0, .green = 0, .blue = 0 };
 
