@@ -1,7 +1,7 @@
 const std = @import("std");
 const args = @import("args");
 const stb = @import("zstbi");
-const rand = std.rand;
+const rand = std.Random;
 
 const RgbColor = struct {
     red: u64,
@@ -19,11 +19,15 @@ pub fn main() !void {
         rgb: bool = false,
         time: bool = false,
         help: bool = false,
-        method: []const u8 = "average",    // "average" or "kmeans"
-        count: u32 = 5,                    // for kmeans
+        method: []const u8 = "average", // "average" or "kmeans"
+        count: u32 = 5, // for kmeans
         pub const shorthands = .{
-            .f = "file", .r = "rgb", .t = "time", .h = "help",
-            .m = "method", .c = "count",
+            .f = "file",
+            .r = "rgb",
+            .t = "time",
+            .h = "help",
+            .m = "method",
+            .c = "count",
         };
     };
 
@@ -41,9 +45,7 @@ pub fn main() !void {
             \\  -r             Output in rgb(r,g,b) form
             \\  -t             Print processing time
             \\  -h, --help     Show this help
-            ,
-            .{}
-        );
+        , .{});
         return;
     }
 
@@ -91,24 +93,23 @@ fn loadImage(path: []const u8) !stb.Image {
 
     var zb = try alloc.alloc(u8, path.len + 1);
     defer alloc.free(zb);
-    std.mem.copy(u8, zb[0..path.len], path);
+    std.mem.copyForwards(u8, zb[0..path.len], path);
     zb[path.len] = 0;
 
     stb.init(alloc);
-    const a: [:0]const u8 = @ptrCast(zb.ptr);
+    const a: [:0]const u8 = zb[0..path.len :0];
     const img = try stb.Image.loadFromFile(a, 0);
     return img;
 }
 
 fn printColor(c: RgbColor, rgbOut: bool) void {
     if (rgbOut) {
-        std.debug.print("rgb({d},{d},{d})\n", .{c.red, c.green, c.blue});
+        std.debug.print("rgb({d},{d},{d})\n", .{ c.red, c.green, c.blue });
     } else {
-        // Clamp to 0..255
-        const r = @as(u8, c.red);
-        const g = @as(u8, c.green);
-        const b = @as(u8, c.blue);
-        std.debug.print("#{02X}{02X}{02X}\n", .{r, g, b});
+        const r = @as(u8, @intCast(c.red));
+        const g = @as(u8, @intCast(c.green));
+        const b = @as(u8, @intCast(c.blue));
+        std.debug.print("#{X:0>2}{X:0>2}{X:0>2}\n", .{ r, g, b });
     }
 }
 
@@ -118,19 +119,19 @@ fn calculateAverageRgb(image: *const stb.Image) RgbColor {
     const components: usize = @intCast(image.num_components);
     const total = @as(u64, w) * @as(u64, h);
 
-    var sum: RgbColor = .{ 0, 0, 0 };
+    var sum = RgbColor{ .red = 0, .green = 0, .blue = 0 }; // Fixed initialization
     const data = image.data;
 
-    for (0 .. total) |i| {
+    for (0..total) |i| {
         const idx = i * components;
-        sum.red   += data[idx + 0];
+        sum.red += data[idx + 0];
         sum.green += data[idx + 1];
-        sum.blue  += data[idx + 2];
+        sum.blue += data[idx + 2];
     }
 
-    sum.red   /= total;
+    sum.red /= total;
     sum.green /= total;
-    sum.blue  /= total;
+    sum.blue /= total;
     return sum;
 }
 
@@ -142,24 +143,26 @@ fn calculateKMeansPalette(
     const w = image.width;
     const h = image.height;
     const total = @as(usize, w * h);
-    const comps: usize = @intCast( image.num_components);
+    const comps: usize = @intCast(image.num_components);
 
     var pixels = try allocator.alloc([3]f64, total);
     defer allocator.free(pixels);
 
-    for (usize(0) .. total) |i| {
+    for (0..total) |i| {
         const base = i * comps;
-        pixels[i][0] = @intCast(image.data[base + 0]);
-        pixels[i][1] = @intCast(image.data[base + 1]);
-        pixels[i][2] = @intCast(image.data[base + 2]);
+        pixels[i][0] = @floatFromInt(image.data[base + 0]);
+        pixels[i][1] = @floatFromInt(image.data[base + 1]);
+        pixels[i][2] = @floatFromInt(image.data[base + 2]);
     }
 
     // initialize centroids by picking k random pixels
     var rng = rand.DefaultPrng.init(0);
     var centroids = try allocator.alloc([3]f64, k);
     for (k) |ci| {
-        const pick = rng.random() % @intCast(u64, total);
-        centroids[ci] = pixels[@intCast(usize, pick)];
+        const total_value: u64 = @intCast(total);
+        const pick = rng.random() % total_value;
+        const a: usize = @intCast(pick);
+        centroids[ci] = pixels[a];
     }
 
     var labels = try allocator.alloc(u32, total);
@@ -172,7 +175,7 @@ fn calculateKMeansPalette(
         for (total) |i| {
             var best = 0;
             var bestDist = distanceSquared(pixels[i], centroids[0]);
-            for (1 .. k) |ci| {
+            for (1..k) |ci| {
                 const d = distanceSquared(pixels[i], centroids[ci]);
                 if (d < bestDist) {
                     bestDist = d;
@@ -190,7 +193,7 @@ fn calculateKMeansPalette(
         // zero
         for (k) |ci| {
             counts[ci] = 0;
-            sums[ci] = [_]f64{0,0,0};
+            sums[ci] = [_]f64{ 0, 0, 0 };
         }
         // accumulate
         for (total) |i| {
@@ -204,7 +207,8 @@ fn calculateKMeansPalette(
         var changed = false;
         for (k) |ci| {
             if (counts[ci] > 0) {
-                const inv = 1.0 / @intCast(f64, counts[ci]);
+                const a: f64 = @intCast(counts[ci]);
+                const inv = 1.0 / a;
                 const newC = [_]f64{
                     sums[ci][0] * inv,
                     sums[ci][1] * inv,
@@ -222,9 +226,9 @@ fn calculateKMeansPalette(
     var out = try allocator.alloc(RgbColor, k);
     for (k) |ci| {
         out[ci] = .{
-            .red   = @as(u64, std.math.round(centroids[ci][0])),
+            .red = @as(u64, std.math.round(centroids[ci][0])),
             .green = @as(u64, std.math.round(centroids[ci][1])),
-            .blue  = @as(u64, std.math.round(centroids[ci][2])),
+            .blue = @as(u64, std.math.round(centroids[ci][2])),
         };
     }
     return out;
@@ -234,5 +238,5 @@ fn distanceSquared(a: [3]f64, b: [3]f64) f64 {
     const dx = a[0] - b[0];
     const dy = a[1] - b[1];
     const dz = a[2] - b[2];
-    return dx*dx + dy*dy + dz*dz;
+    return dx * dx + dy * dy + dz * dz;
 }
