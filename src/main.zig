@@ -158,9 +158,9 @@ fn calculateKMeansPalette(
     // initialize centroids by picking k random pixels
     var rng = rand.DefaultPrng.init(0);
     var centroids = try allocator.alloc([3]f64, k);
-    for (k) |ci| {
+    for (0..k) |ci| {
         const total_value: u64 = @intCast(total);
-        const pick = rng.random() % total_value;
+        const pick = rng.next() % total_value;
         const a: usize = @intCast(pick);
         centroids[ci] = pixels[a];
     }
@@ -170,10 +170,10 @@ fn calculateKMeansPalette(
 
     // lloyd iterations
     const maxIters = 50;
-    for (maxIters) |_| {
+    for (0..maxIters) |_| {
         // assignment
-        for (total) |i| {
-            var best = 0;
+        for (0..total) |i| {
+            var best: u64 = 0;
             var bestDist = distanceSquared(pixels[i], centroids[0]);
             for (1..k) |ci| {
                 const d = distanceSquared(pixels[i], centroids[ci]);
@@ -182,7 +182,7 @@ fn calculateKMeansPalette(
                     best = ci;
                 }
             }
-            labels[i] = best;
+            labels[i] = @as(u32, @intCast(best));
         }
         // update
         var counts = try allocator.alloc(u64, k);
@@ -191,12 +191,12 @@ fn calculateKMeansPalette(
         defer allocator.free(sums);
 
         // zero
-        for (k) |ci| {
+        for (0..k) |ci| {
             counts[ci] = 0;
             sums[ci] = [_]f64{ 0, 0, 0 };
         }
         // accumulate
-        for (total) |i| {
+        for (0..total) |i| {
             const ci = labels[i];
             counts[ci] += 1;
             sums[ci][0] += pixels[i][0];
@@ -205,10 +205,10 @@ fn calculateKMeansPalette(
         }
         // recompute and check for empties
         var changed = false;
-        for (k) |ci| {
+        for (0..k) |ci| {
             if (counts[ci] > 0) {
-                const a: f64 = @intCast(counts[ci]);
-                const inv = 1.0 / a;
+                const a: u64 = @intCast(counts[ci]);
+                const inv = 1.0 / @as(f64, a);
                 const newC = [_]f64{
                     sums[ci][0] * inv,
                     sums[ci][1] * inv,
@@ -224,7 +224,7 @@ fn calculateKMeansPalette(
     }
 
     var out = try allocator.alloc(RgbColor, k);
-    for (k) |ci| {
+    for (0..k) |ci| {
         out[ci] = .{
             .red = @as(u64, std.math.round(centroids[ci][0])),
             .green = @as(u64, std.math.round(centroids[ci][1])),
