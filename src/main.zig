@@ -119,7 +119,7 @@ fn calculateAverageRgb(image: *const stb.Image) RgbColor {
     const components: usize = @intCast(image.num_components);
     const total = @as(u64, w) * @as(u64, h);
 
-    var sum = RgbColor{ .red = 0, .green = 0, .blue = 0 }; // Fixed initialization
+    var sum = RgbColor{ .red = 0, .green = 0, .blue = 0 };
     const data = image.data;
 
     for (0..total) |i| {
@@ -208,7 +208,8 @@ fn calculateKMeansPalette(
         for (0..k) |ci| {
             if (counts[ci] > 0) {
                 const a: u64 = @intCast(counts[ci]);
-                const inv = 1.0 / @as(f64, a);
+                const b: f64 = @floatFromInt(a);
+                const inv = 1.0 / b;
                 const newC = [_]f64{
                     sums[ci][0] * inv,
                     sums[ci][1] * inv,
@@ -226,9 +227,9 @@ fn calculateKMeansPalette(
     var out = try allocator.alloc(RgbColor, k);
     for (0..k) |ci| {
         out[ci] = .{
-            .red = @as(u64, std.math.round(centroids[ci][0])),
-            .green = @as(u64, std.math.round(centroids[ci][1])),
-            .blue = @as(u64, std.math.round(centroids[ci][2])),
+            .red = @as(u64, @round(centroids[ci][0])),
+            .green = @as(u64, @round(centroids[ci][1])),
+            .blue = @as(u64, @round(centroids[ci][2])),
         };
     }
     return out;
