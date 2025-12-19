@@ -9,11 +9,9 @@ const RgbColor = struct {
     blue: u64,
 };
 
-pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+const allocator = std.heap.page_allocator;
 
+pub fn main() !void {
     const Options = struct {
         file: ?[]const u8 = null,
         rgb: bool = false,
@@ -59,14 +57,14 @@ pub fn main() !void {
         timer = try std.time.Timer.start();
     }
 
-    const image = try loadImage(file_path);
+    var image = try loadImage(file_path);
     defer stb.Image.deinit(&image);
 
     if (std.mem.eql(u8, opt.options.method, "average")) {
         const avg = calculateAverageRgb(&image);
         printColor(avg, opt.options.rgb);
     } else if (std.mem.eql(u8, opt.options.method, "kmeans")) {
-        const palette = try calculateKMeansPalette(allocator, &image, opt.options.count);
+        const palette = try calculateKMeansPalette(&image, opt.options.count);
         defer allocator.free(palette);
 
         if (palette.len == 1) {
@@ -78,25 +76,23 @@ pub fn main() !void {
             }
         }
     } else {
-        std.log.err("Unknown method: {}\n", .{opt.options.method});
+        std.log.err("Unknown method: {s}\n", .{opt.options.method});
         std.process.exit(1);
     }
 
-    if (timer) |t| {
+    if (timer) |*t| {
         const elapsed = t.read();
         std.log.info("Time: {d}ms", .{elapsed / 1_000_000});
     }
 }
 
 fn loadImage(path: []const u8) !stb.Image {
-    const alloc = std.heap.page_allocator;
-
-    var zb = try alloc.alloc(u8, path.len + 1);
-    defer alloc.free(zb);
+    var zb = try allocator.alloc(u8, path.len + 1);
+    defer allocator.free(zb);
     std.mem.copyForwards(u8, zb[0..path.len], path);
     zb[path.len] = 0;
 
-    stb.init(alloc);
+    stb.init(allocator);
     const a: [:0]const u8 = zb[0..path.len :0];
     const img = try stb.Image.loadFromFile(a, 0);
     return img;
@@ -136,7 +132,6 @@ fn calculateAverageRgb(image: *const stb.Image) RgbColor {
 }
 
 fn calculateKMeansPalette(
-    allocator: std.mem.Allocator,
     image: *const stb.Image,
     k: u32,
 ) ![]RgbColor {
@@ -227,9 +222,9 @@ fn calculateKMeansPalette(
     var out = try allocator.alloc(RgbColor, k);
     for (0..k) |ci| {
         out[ci] = .{
-            .red = @as(u64, @round(centroids[ci][0])),
-            .green = @as(u64, @round(centroids[ci][1])),
-            .blue = @as(u64, @round(centroids[ci][2])),
+            .red = std.math.lossyCast(u64, @round(centroids[ci][0])),
+            .green = std.math.lossyCast(u64, @round(centroids[ci][1])),
+            .blue = std.math.lossyCast(u64, @round(centroids[ci][2])),
         };
     }
     return out;
